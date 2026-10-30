@@ -44,10 +44,7 @@ class StatCardsGrid extends StatelessWidget {
             decoration: BoxDecoration(
               color: Color(0xFF121212),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Color(0xFF2A2A2A),
-                width: 1,
-              ),
+              border: Border.all(color: Color(0xFF2A2A2A), width: 1),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,10 +69,7 @@ class StatCardsGrid extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Color(0xFF121212),
                         borderRadius: BorderRadius.circular(11),
-                        border: Border.all(
-                          color: Color(0xFF2A2A2A),
-                          width: 1,
-                        ),
+                        border: Border.all(color: Color(0xFF2A2A2A), width: 1),
                       ),
                       child: isImage,
                     ),
@@ -93,10 +87,7 @@ class StatCardsGrid extends StatelessWidget {
                 ),
                 Text(
                   stat['subtitle'] as String,
-                  style: TextStyle(
-                    color: Color(0xFFA5A8AF),
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Color(0xFFA5A8AF), fontSize: 12),
                 ),
               ],
             ),
