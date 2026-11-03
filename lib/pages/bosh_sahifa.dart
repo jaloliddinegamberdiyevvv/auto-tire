@@ -1,15 +1,23 @@
 import 'dart:async';
 
 import 'package:auto_tire/store/magazin_store.dart';
+import 'package:auto_tire/user_profile.dart';
 import 'package:auto_tire/widgets/bosh_sahifa_app_bar.dart';
 import 'package:auto_tire/widgets/stat_cards_grid.dart';
 import 'package:auto_tire/widgets/table_empty.dart';
 import 'package:flutter/material.dart';
 
 class BoshSahifa extends StatefulWidget {
+  final UserProfile profile;
+  final VoidCallback? onMenuTap;
   final ValueChanged<int?>? onMenuHover;
 
-  BoshSahifa({super.key, this.onMenuHover});
+  BoshSahifa({
+    super.key,
+    required this.profile,
+    this.onMenuTap,
+    this.onMenuHover,
+  });
 
   @override
   State<BoshSahifa> createState() => _BoshSahifaState();
@@ -45,6 +53,12 @@ class _BoshSahifaState extends State<BoshSahifa> {
     final String month = currentDateTime.month.toString().padLeft(2, '0');
     final String year = currentDateTime.year.toString();
     return '$day.$month.$year';
+  }
+
+  void _updateSearch(String value) {
+    setState(() {
+      _query = value.toLowerCase();
+    });
   }
 
   int _menuIndexForProduct(MagazinStore store, Product product) {
@@ -87,16 +101,46 @@ class _BoshSahifaState extends State<BoshSahifa> {
       backgroundColor: Colors.black,
       appBar: BoshSahifaAppBar(
         formattedDate: formattedDate,
+        onMenuTap: widget.onMenuTap,
+        firstName: widget.profile.firstName,
+        lastName: widget.profile.lastName,
+        login: widget.profile.email,
+        password: widget.profile.password,
+        onProfileChanged: (UserProfile profile) => profile.save(),
         searchController: _searchController,
-        onSearchChanged: (String value) {
-          setState(() {
-            _query = value.toLowerCase();
-          });
-        },
+        onSearchChanged: _updateSearch,
       ),
       body: ListView(
-        padding: EdgeInsets.all(24),
+        padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 700 ? 12 : 24),
         children: [
+          if (MediaQuery.sizeOf(context).width < 700) ...[
+            Container(
+              height: 42,
+              decoration: BoxDecoration(
+                color: Color(0xFF121212),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Color(0xFF2A2A2A)),
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: _updateSearch,
+                style: TextStyle(color: Colors.white, fontSize: 13),
+                cursorColor: Colors.white,
+                decoration: InputDecoration(
+                  hintText: 'Sotuvni qidirish...',
+                  hintStyle: TextStyle(color: Colors.white54, fontSize: 13),
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    color: Colors.white70,
+                    size: 19,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+                ),
+              ),
+            ),
+            SizedBox(height: 12),
+          ],
           StatCardsGrid(
             crossAxisCount: 5,
             onHover: (int? statIndex) {
@@ -110,130 +154,143 @@ class _BoshSahifaState extends State<BoshSahifa> {
                 'title': 'Jami foyda',
                 'value': fmtMillion(store.totalProfit),
                 'subtitle': 'Barcha vaqt uchun',
-                'image': 'assets/jami_foyda_image.png',
+                'icon': Icons.trending_up_rounded,
               },
               {
                 'title': 'Ombor qiymati',
                 'value': fmtMillion(store.warehouseValue, digits: 1),
                 'subtitle': '${store.warehouseStock} dona mahsulot',
-                'image': 'assets/ombor_qiymati_image.png',
+                'icon': Icons.inventory_2_outlined,
               },
               {
                 'title': 'Jami sotuvlar',
                 'value': '${store.sales.length}',
                 'subtitle': 'ta operatsiya',
-                'image': 'assets/jami_sotuvlar_image.png',
+                'icon': Icons.point_of_sale_outlined,
               },
               {
                 'title': 'Qarz qoldig‘i',
                 'value': fmtMillion(store.pendingDebtSum),
                 'subtitle': '${store.pendingDebtCount} ta mijoz',
-                'image': 'assets/qarz_qoldigi_image.png',
+                'icon': Icons.account_balance_wallet_outlined,
               },
               {
                 'title': 'Bugungi sotuvlar',
                 'value': '${today.length}',
                 'subtitle': '${fmtN(todayProfit)} so\'m foyda',
-                'image': 'assets/qarz_qoldigi_image.png',
+                'icon': Icons.today_outlined,
               },
             ],
           ),
           SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 325,
-                  decoration: BoxDecoration(
-                    color: Color(0xFF121212),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Color(0xFF2A2A2A), width: 1),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      BoxHeader(
-                        icon: Icons.access_time,
-                        iconColor: Colors.grey,
-                        title: "So‘nggi sotuvlar",
-                      ),
-                      Expanded(
-                        child: recent.isEmpty
-                            ? TableEmpty(
-                                icon: Icons.inbox_outlined,
-                                title: 'Hali sotuv yo\'q',
-                                message: 'Birinchi sotuvni qo\'shing',
-                              )
-                            : ListView.builder(
-                                itemCount: recent.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  final SaleRecord sale = recent[index];
-                                  return _ActivityRow(
-                                    title: sale.productName,
-                                    subtitle:
-                                        '${sale.date} · ${sale.qty} dona · +${fmtSom(sale.profit)}',
-                                    color: Color(0xFF00C853),
-                                    onHoverEnter: () =>
-                                        widget.onMenuHover?.call(5),
-                                    onHoverExit: () =>
-                                        widget.onMenuHover?.call(null),
-                                  );
-                                },
-                              ),
-                      ),
-                    ],
-                  ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final Widget recentSalesPanel = Container(
+                height: 325,
+                decoration: BoxDecoration(
+                  color: Color(0xFF121212),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Color(0xFF2A2A2A), width: 1),
                 ),
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                child: Container(
-                  height: 325,
-                  decoration: BoxDecoration(
-                    color: Color(0xFF121212),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Color(0xFF2A2A2A), width: 1),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      BoxHeader(
-                        icon: Icons.warning_amber_rounded,
-                        iconColor: Colors.grey,
-                        title: "Kam qolgan mahsulotlar",
-                      ),
-                      Expanded(
-                        child: lowStock.isEmpty
-                            ? TableEmpty(
-                                icon: Icons.check_circle_outline,
-                                title: 'Hammasi yetarli',
-                                message: 'Barcha mahsulotlar yetarli',
-                              )
-                            : ListView.builder(
-                                itemCount: lowStock.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  final Product p = lowStock[index];
-                                  return _ActivityRow(
-                                    title: '${p.name} ${p.size}',
-                                    subtitle: p.stock == 0
-                                        ? 'Tugagan'
-                                        : '${p.stock} dona qoldi',
-                                    color: p.stock == 0
-                                        ? Color(0xFFEF5350)
-                                        : Color(0xFFF97316),
-                                    onHoverEnter: () => widget.onMenuHover
-                                        ?.call(_menuIndexForProduct(store, p)),
-                                    onHoverExit: () =>
-                                        widget.onMenuHover?.call(null),
-                                  );
-                                },
-                              ),
-                      ),
-                    ],
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    BoxHeader(
+                      icon: Icons.access_time,
+                      iconColor: Colors.grey,
+                      title: "So‘nggi sotuvlar",
+                    ),
+                    Expanded(
+                      child: recent.isEmpty
+                          ? TableEmpty(
+                              icon: Icons.receipt_long_outlined,
+                              title: 'Hali sotuv yo\'q',
+                              message: 'Birinchi sotuvni qo\'shing',
+                            )
+                          : ListView.builder(
+                              itemCount: recent.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                final SaleRecord sale = recent[index];
+                                return _ActivityRow(
+                                  title: sale.productName,
+                                  subtitle:
+                                      '${sale.date} · ${sale.qty} dona · +${fmtSom(sale.profit)}',
+                                  color: Color(0xFF00C853),
+                                  onHoverEnter: () =>
+                                      widget.onMenuHover?.call(5),
+                                  onHoverExit: () =>
+                                      widget.onMenuHover?.call(null),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              );
+              final Widget lowStockPanel = Container(
+                height: 325,
+                decoration: BoxDecoration(
+                  color: Color(0xFF121212),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Color(0xFF2A2A2A), width: 1),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    BoxHeader(
+                      icon: Icons.warning_amber_rounded,
+                      iconColor: Colors.grey,
+                      title: "Kam qolgan mahsulotlar",
+                    ),
+                    Expanded(
+                      child: lowStock.isEmpty
+                          ? TableEmpty(
+                              icon: Icons.check_circle_outline,
+                              title: 'Hammasi yetarli',
+                              message: 'Barcha mahsulotlar yetarli',
+                            )
+                          : ListView.builder(
+                              itemCount: lowStock.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                final Product p = lowStock[index];
+                                return _ActivityRow(
+                                  title: '${p.name} ${p.size}',
+                                  subtitle: p.stock == 0
+                                      ? 'Tugagan'
+                                      : '${p.stock} dona qoldi',
+                                  color: p.stock == 0
+                                      ? Color(0xFFEF5350)
+                                      : Color(0xFFF97316),
+                                  onHoverEnter: () => widget.onMenuHover
+                                      ?.call(_menuIndexForProduct(store, p)),
+                                  onHoverExit: () =>
+                                      widget.onMenuHover?.call(null),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              );
+
+              if (constraints.maxWidth < 760) {
+                return Column(
+                  children: [
+                    recentSalesPanel,
+                    SizedBox(height: 16),
+                    lowStockPanel,
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(child: recentSalesPanel),
+                  SizedBox(width: 16),
+                  Expanded(child: lowStockPanel),
+                ],
+              );
+            },
           ),
         ],
       ),

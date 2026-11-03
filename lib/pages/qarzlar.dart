@@ -1,12 +1,15 @@
 import 'package:auto_tire/store/magazin_store.dart';
 import 'package:auto_tire/widgets/magazin_dialogs.dart';
 import 'package:auto_tire/widgets/moliya_app_bar.dart';
+import 'package:auto_tire/widgets/responsive_table.dart';
 import 'package:auto_tire/widgets/stat_cards_grid.dart';
 import 'package:auto_tire/widgets/table_empty.dart';
 import 'package:flutter/material.dart';
 
 class Qarzlar extends StatefulWidget {
-  Qarzlar({super.key});
+  const Qarzlar({super.key, this.onMenuTap});
+
+  final VoidCallback? onMenuTap;
 
   @override
   State<Qarzlar> createState() => _QarzlarState();
@@ -29,13 +32,14 @@ class _QarzlarState extends State<Qarzlar> {
       backgroundColor: Colors.black,
       appBar: MoliyaAppBar(
         title: 'Qarzlar',
+        onMenuTap: widget.onMenuTap,
         onAdd: () {
           showDebtDialog(context);
         },
         addButtonText: 'Qarz qo\'shish',
       ),
       body: Padding(
-        padding: EdgeInsets.all(24),
+        padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 700 ? 12 : 24),
         child: Column(
           children: [
             StatCardsGrid(
@@ -45,19 +49,19 @@ class _QarzlarState extends State<Qarzlar> {
                   'title': 'Jami qarz',
                   'value': fmtN(store.pendingDebtSum),
                   'subtitle': 'so\'m',
-                 'image': 'assets/qarz_qoldigi_image.png'
+                  'icon': Icons.account_balance_wallet_outlined,
                 },
                 {
                   'title': 'Qarzkor mijozlar',
                   'value': '${store.debtClientCount}',
                   'subtitle': 'kishi',
-                  'image': 'assets/qarz_qoldigi_image.png'
+                  'icon': Icons.people_alt_outlined,
                 },
                 {
                   'title': 'To\'langan qarzlar',
                   'value': fmtN(store.paidDebtSum),
                   'subtitle': 'so\'m',
-                  'image': 'assets/qarz_qoldigi_image.png'
+                  'icon': Icons.task_alt_outlined,
                 },
               ],
             ),
@@ -81,40 +85,52 @@ class _QarzlarState extends State<Qarzlar> {
                         });
                       },
                     ),
-                    QarzlarBoxTableHeader(),
                     Expanded(
-                      child: debts.isEmpty
-                          ? TableEmpty(
-                              icon: Icons.assignment_outlined,
-                              title: 'Qarz topilmadi',
-                              message: 'Hali qarz yo\'q',
-                            )
-                          : ListView.builder(
-                              itemCount: debts.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                final DebtRecord debt = debts[index];
-                                return _DebtRow(
-                                  debt: debt,
-                                  isLast: index == debts.length - 1,
-                                  onPay: () {
-                                    showPayDebtDialog(context, debt);
-                                  },
-                                  onDelete: () async {
-                                    final bool ok = await showConfirmDialog(
-                                      context,
-                                      'Qarzni o\'chirishni tasdiqlaysizmi?',
-                                    );
-                                    if (!ok) return;
-                                    await store.deleteDebt(debt.id);
-                                    if (!context.mounted) return;
-                                    showMagazinSnack(
-                                      context,
-                                      'Qarz o\'chirildi',
-                                    );
-                                  },
-                                );
-                              },
+                      child: ResponsiveTable(
+                        minWidth: 920,
+                        child: Column(
+                          children: [
+                            QarzlarBoxTableHeader(),
+                            Expanded(
+                              child: debts.isEmpty
+                                  ? TableEmpty(
+                                      icon: Icons.assignment_outlined,
+                                      title: 'Qarz topilmadi',
+                                      message: 'Hali qarz yo\'q',
+                                    )
+                                  : ListView.builder(
+                                      itemCount: debts.length,
+                                      itemBuilder:
+                                          (BuildContext context, int index) {
+                                            final DebtRecord debt =
+                                                debts[index];
+                                            return _DebtRow(
+                                              debt: debt,
+                                              isLast: index == debts.length - 1,
+                                              onPay: () {
+                                                showPayDebtDialog(context, debt);
+                                              },
+                                              onDelete: () async {
+                                                final bool ok =
+                                                    await showConfirmDialog(
+                                                      context,
+                                                      'Qarzni o\'chirishni tasdiqlaysizmi?',
+                                                    );
+                                                if (!ok) return;
+                                                await store.deleteDebt(debt.id);
+                                                if (!context.mounted) return;
+                                                showMagazinSnack(
+                                                  context,
+                                                  'Qarz o\'chirildi',
+                                                );
+                                              },
+                                            );
+                                          },
+                                    ),
                             ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -337,31 +353,61 @@ class QarzlarStatsBoxHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(left: 20, right: 20, top: 14, bottom: 14),
-          child: Row(
-            children: [
-              Text(
-                'Qarzlar ro\'yxati',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool compact = constraints.maxWidth < 760;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: compact ? 12 : 20,
+                vertical: 12,
               ),
-              Spacer(),
-              PaymentStatusFilter(
-                selectedIndex: selectedIndex,
-                onStatusChanged: onStatusChanged,
-              ),
-            ],
-          ),
-        ),
-        Divider(color: Color(0xFF464646), height: 1),
-      ],
+              child: compact
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Qarzlar ro\'yxati',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: PaymentStatusFilter(
+                            selectedIndex: selectedIndex,
+                            onStatusChanged: onStatusChanged,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Text(
+                          'Qarzlar ro\'yxati',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Spacer(),
+                        PaymentStatusFilter(
+                          selectedIndex: selectedIndex,
+                          onStatusChanged: onStatusChanged,
+                        ),
+                      ],
+                    ),
+            ),
+            Divider(color: Color(0xFF464646), height: 1),
+          ],
+        );
+      },
     );
   }
 }

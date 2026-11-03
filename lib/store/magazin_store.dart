@@ -326,6 +326,24 @@ class MagazinStore extends ChangeNotifier {
     await prefs.setString(_storageKey, jsonEncode(data));
   }
 
+  Future<void> clearAll() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final bool removed = await prefs.remove(_storageKey);
+    if (!removed && prefs.containsKey(_storageKey)) {
+      throw StateError('Do‘kon ma’lumotlarini o‘chirib bo‘lmadi.');
+    }
+
+    products = {
+      'yengil': <Product>[],
+      'yuk': <Product>[],
+      'disk': <Product>[],
+      'akkum': <Product>[],
+    };
+    sales = <SaleRecord>[];
+    debts = <DebtRecord>[];
+    notifyListeners();
+  }
+
   List<Product> byCat(String cat) {
     return products[cat] ?? <Product>[];
   }

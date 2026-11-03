@@ -22,7 +22,7 @@ class TableEmpty extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, color: Color(0xFF8E8E8E), size: 42),
-            SizedBox(height: 12),
+            SizedBox(height:6),
             Text(
               title,
               style: TextStyle(
@@ -31,7 +31,7 @@ class TableEmpty extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: 4),
+            SizedBox(height: 2),
             Text(
               message,
               style: TextStyle(color: Color(0xFF8E8E8E), fontSize: 13),

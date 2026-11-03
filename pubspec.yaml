@@ -13,6 +13,7 @@ dependencies:
     sdk: flutter
   font_awesome_flutter: ^11.0.0
   google_fonts: ^8.2.1
+  flutter_secure_storage: ^11.2.0
   # Telefon/kompyuterda localStorage o‘rniga ma’lumotni saqlash uchun
   shared_preferences: ^2.5.3
 

@@ -1,4 +1,5 @@
 import 'package:auto_tire/main_screen.dart';
+import 'package:auto_tire/user_profile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -18,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordCtrl = TextEditingController();
 
   bool _obscure = true;
+  bool _isSaving = false;
 
   // Ranglar
   final Color _fieldBg = Color(0xFF141416);
@@ -36,12 +38,55 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // Formani tekshirish va asosiy sahifaga o'tish
-  void _submit() {
-    if (_formKey.currentState?.validate() ?? false) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => AutoTireMainScreen()),
+  @override
+  void initState() {
+    super.initState();
+    _restoreProfile();
+  }
+
+  Future<void> _restoreProfile() async {
+    try {
+      final UserProfile? profile = await UserProfile.load();
+      if (!mounted || profile == null) return;
+
+      _firstNameCtrl.text = profile.firstName;
+      _lastNameCtrl.text = profile.lastName;
+      _loginCtrl.text = profile.email;
+    } catch (error) {
+      debugPrint('Profil ma’lumotlarini tiklab bo‘lmadi: $error');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Saqlangan profilni ochib bo‘lmadi: $error')),
       );
+    }
+  }
+
+  // Formani tekshirish va asosiy sahifaga o'tish
+  Future<void> _submit() async {
+    if (_isSaving || !(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isSaving = true);
+    final profile = UserProfile(
+      firstName: _firstNameCtrl.text.trim(),
+      lastName: _lastNameCtrl.text.trim(),
+      email: _loginCtrl.text.trim(),
+      password: _passwordCtrl.text,
+    );
+
+    try {
+      await profile.save();
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => AutoTireMainScreen(profile: profile)),
+      );
+    } catch (error) {
+      debugPrint('Profil ma’lumotlarini saqlab bo‘lmadi: $error');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Profilni saqlab bo‘lmadi: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -97,21 +142,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-              // Kontent: chap tomonda, scrollsiz
+              // Kontent: kichik ekranlarda forma scroll bilan ko‘rinadi.
               Align(
                 alignment: isMobile ? Alignment.center : Alignment.centerLeft,
                 child: SizedBox(
                   width: contentWidth,
                   height: h,
                   child: SafeArea(
-                    child: Padding(
+                    child: SingleChildScrollView(
                       padding: EdgeInsets.symmetric(
                         horizontal: isMobile ? 26 : 48,
-                        vertical: 12,
+                        vertical: 24,
                       ),
-                      child: Center(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: h > 48 ? h - 48 : 0,
+                        ),
+                        child: Center(
                           child: SizedBox(
                             width: contentWidth - (isMobile ? 52 : 96),
                             child: ConstrainedBox(
@@ -259,12 +306,12 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: EdgeInsets.zero,
               color: Color(0xFFF5F5F5),
               borderRadius: BorderRadius.circular(13),
-              onPressed: _submit,
+              onPressed: _isSaving ? null : _submit,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Tizimga kirish',
+                    _isSaving ? 'Saqlanmoqda...' : 'Tizimga kirish',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 15,

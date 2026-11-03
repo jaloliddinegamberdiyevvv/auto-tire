@@ -2,7 +2,9 @@ import 'package:auto_tire/pages/mahsulot_sahifa.dart';
 import 'package:flutter/material.dart';
 
 class Diskalar extends StatelessWidget {
-  Diskalar({super.key});
+  const Diskalar({super.key, this.onMenuTap});
+
+  final VoidCallback? onMenuTap;
 
   @override
   Widget build(BuildContext context) {
@@ -10,6 +12,7 @@ class Diskalar extends StatelessWidget {
       category: 'disk',
       title: 'Diskalar',
       sizeColumnTitle: 'RAZMER',
+      onMenuTap: onMenuTap,
     );
   }
 }

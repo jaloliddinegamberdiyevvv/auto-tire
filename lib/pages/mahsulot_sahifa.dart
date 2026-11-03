@@ -2,6 +2,7 @@ import 'package:auto_tire/store/magazin_store.dart';
 import 'package:auto_tire/widgets/magazin_dialogs.dart';
 import 'package:auto_tire/widgets/mahsulotlar_app_bar.dart';
 import 'package:auto_tire/widgets/mahsulotlar_box_table_header.dart';
+import 'package:auto_tire/widgets/responsive_table.dart';
 import 'package:auto_tire/widgets/stat_cards_grid.dart';
 import 'package:auto_tire/widgets/stats_box_header.dart';
 import 'package:auto_tire/widgets/table_empty.dart';
@@ -12,12 +13,14 @@ class MahsulotSahifa extends StatefulWidget {
   final String category;
   final String title;
   final String sizeColumnTitle;
+  final VoidCallback? onMenuTap;
 
   MahsulotSahifa({
     super.key,
     required this.category,
     required this.title,
     required this.sizeColumnTitle,
+    this.onMenuTap,
   });
 
   @override
@@ -59,6 +62,7 @@ class _MahsulotSahifaState extends State<MahsulotSahifa> {
       backgroundColor: Colors.black,
       appBar: MahsulotlarAppBar(
         title: widget.title,
+        onMenuTap: widget.onMenuTap,
         searchController: _searchController,
         onSearchChanged: (String value) {
           setState(() {
@@ -73,7 +77,7 @@ class _MahsulotSahifaState extends State<MahsulotSahifa> {
         },
       ),
       body: Padding(
-        padding: EdgeInsets.all(24),
+        padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 700 ? 12 : 24),
         child: Column(
           children: [
             StatCardsGrid(
@@ -83,25 +87,25 @@ class _MahsulotSahifaState extends State<MahsulotSahifa> {
                   'title': 'Turlar soni',
                   'value': '${products.length}',
                   'subtitle': 'Tur mahsulot',
-                  'image': 'assets/qarz_qoldigi_image.png',
+                  'icon': Icons.category_outlined,
                 },
                 {
                   'title': 'Omboringiz',
                   'value': '$totalStock',
                   'subtitle': 'Jami dona',
-                  'image': 'assets/qarz_qoldigi_image.png',
+                  'icon': Icons.inventory_2_outlined,
                 },
                 {
                   'title': 'Ombor qiymati',
                   'value': fmtMillion(totalValue, digits: 1),
                   'subtitle': 'So‘m (kelish)',
-                  'image': 'assets/qarz_qoldigi_image.png',
+                  'icon': Icons.warehouse_outlined,
                 },
                 {
                   'title': 'O‘rtacha foyda',
                   'value': fmtN(avgProfit.round()),
                   'subtitle': 'So‘m / dona',
-                  'image': 'assets/qarz_qoldigi_image.png',
+                  'icon': Icons.trending_up_rounded,
                 },
               ],
             ),
@@ -117,53 +121,68 @@ class _MahsulotSahifaState extends State<MahsulotSahifa> {
                 child: Column(
                   children: [
                     StatsBoxHeader(count: products.length),
-                    MahsulotlarBoxTableHeader(title: widget.sizeColumnTitle),
                     Expanded(
-                      child: visible.isEmpty
-                          ? TableEmpty(
-                              icon: Icons.inventory_2_outlined,
-                              title: 'Mahsulot yo\'q',
-                              message: 'Birinchi mahsulotni qo\'shing',
-                            )
-                          : ListView.builder(
-                              itemCount: visible.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                return _ProductRow(
-                                  product: visible[index],
-                                  isLast: index == visible.length - 1,
-                                  onEdit: () {
-                                    showProductDialog(
-                                      context,
-                                      cat: widget.category,
-                                      product: visible[index],
-                                    );
-                                  },
-                                  onSell: () {
-                                    showSaleDialog(
-                                      context,
-                                      lockedCat: widget.category,
-                                      lockedProductId: visible[index].id,
-                                    );
-                                  },
-                                  onDelete: () async {
-                                    final bool ok = await showConfirmDialog(
-                                      context,
-                                      'Mahsulotni o\'chirishni tasdiqlaysizmi?',
-                                    );
-                                    if (!ok) return;
-                                    await store.deleteProduct(
-                                      widget.category,
-                                      visible[index].id,
-                                    );
-                                    if (!context.mounted) return;
-                                    showMagazinSnack(
-                                      context,
-                                      'Mahsulot o\'chirildi',
-                                    );
-                                  },
-                                );
-                              },
+                      child: ResponsiveTable(
+                        minWidth: 900,
+                        child: Column(
+                          children: [
+                            MahsulotlarBoxTableHeader(
+                              title: widget.sizeColumnTitle,
                             ),
+                            Expanded(
+                              child: visible.isEmpty
+                                  ? TableEmpty(
+                                      icon: Icons.leaderboard_outlined,
+                                      title: 'Mahsulot yo\'q',
+                                      message: 'Birinchi mahsulotni qo\'shing',
+                                    )
+                                  : ListView.builder(
+                                      itemCount: visible.length,
+                                      itemBuilder:
+                                          (BuildContext context, int index) {
+                                            return _ProductRow(
+                                              product: visible[index],
+                                              isLast:
+                                                  index == visible.length - 1,
+                                              onEdit: () {
+                                                showProductDialog(
+                                                  context,
+                                                  cat: widget.category,
+                                                  product: visible[index],
+                                                );
+                                              },
+                                              onSell: () {
+                                                showSaleDialog(
+                                                  context,
+                                                  lockedCat: widget.category,
+                                                  lockedProductId:
+                                                      visible[index].id,
+                                                );
+                                              },
+                                              onDelete: () async {
+                                                final bool ok =
+                                                    await showConfirmDialog(
+                                                      context,
+                                                      'Mahsulotni o\'chirishni tasdiqlaysizmi?',
+                                                    );
+                                                if (!ok) return;
+                                                await store.deleteProduct(
+                                                  widget.category,
+                                                  visible[index].id,
+                                                );
+                                                if (!context.mounted) return;
+                                                showMagazinSnack(
+                                                  context,
+                                                  'Mahsulot o\'chirildi',
+                                                );
+                                              },
+                                            );
+                                          },
+                                    ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),

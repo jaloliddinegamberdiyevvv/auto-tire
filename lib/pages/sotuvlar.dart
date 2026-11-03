@@ -1,12 +1,15 @@
 import 'package:auto_tire/store/magazin_store.dart';
 import 'package:auto_tire/widgets/magazin_dialogs.dart';
 import 'package:auto_tire/widgets/moliya_app_bar.dart';
+import 'package:auto_tire/widgets/responsive_table.dart';
 import 'package:auto_tire/widgets/stat_cards_grid.dart';
 import 'package:auto_tire/widgets/table_empty.dart';
 import 'package:flutter/material.dart';
 
 class Sotuvlar extends StatelessWidget {
-  Sotuvlar({super.key});
+  const Sotuvlar({super.key, this.onMenuTap});
+
+  final VoidCallback? onMenuTap;
 
   @override
   Widget build(BuildContext context) {
@@ -17,13 +20,14 @@ class Sotuvlar extends StatelessWidget {
       backgroundColor: Colors.black,
       appBar: MoliyaAppBar(
         title: 'Sotuvlar',
+        onMenuTap: onMenuTap,
         onAdd: () {
           showSaleDialog(context);
         },
         addButtonText: 'Yangi sotuv',
       ),
       body: Padding(
-        padding: EdgeInsets.all(24),
+        padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 700 ? 12 : 24),
         child: Column(
           children: [
             StatCardsGrid(
@@ -33,25 +37,25 @@ class Sotuvlar extends StatelessWidget {
                   'title': 'Jami sotuv',
                   'value': fmtMillion(store.totalRevenue),
                   'subtitle': 'so\'m',
-                  'image': 'assets/qarz_qoldigi_image.png',
+                  'icon': Icons.payments_outlined,
                 },
                 {
                   'title': 'Jami foyda',
                   'value': fmtMillion(store.totalProfit),
                   'subtitle': 'so\'m',
-                  'image': 'assets/qarz_qoldigi_image.png',
+                  'icon': Icons.trending_up_rounded,
                 },
                 {
                   'title': 'Operatsiyalar',
                   'value': '${sales.length}',
                   'subtitle': 'ta sotuv',
-                  'image': 'assets/qarz_qoldigi_image.png',
+                  'icon': Icons.receipt_long_outlined,
                 },
                 {
                   'title': 'Bugungi sotuv',
                   'value': '${store.todaySales.length}',
                   'subtitle': 'ta operatsiya',
-                  'image': 'assets/qarz_qoldigi_image.png',
+                  'icon': Icons.today_outlined,
                 },
               ],
             ),
@@ -67,37 +71,49 @@ class Sotuvlar extends StatelessWidget {
                 child: Column(
                   children: [
                     SotuvlarStatsBoxHeader(count: sales.length),
-                    SotuvlarBoxTableHeader(),
                     Expanded(
-                      child: sales.isEmpty
-                          ? TableEmpty(
-                              icon: Icons.point_of_sale_outlined,
-                              title: 'Hali sotuv yo\'q',
-                              message: 'Hali sotuv amalga oshirilmagan',
-                            )
-                          : ListView.builder(
-                              itemCount: sales.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                final SaleRecord sale = sales[index];
-                                return _SaleRow(
-                                  sale: sale,
-                                  isLast: index == sales.length - 1,
-                                  onDelete: () async {
-                                    final bool ok = await showConfirmDialog(
-                                      context,
-                                      'Sotuvni o\'chirishni tasdiqlaysizmi?',
-                                    );
-                                    if (!ok) return;
-                                    await store.deleteSale(sale.id);
-                                    if (!context.mounted) return;
-                                    showMagazinSnack(
-                                      context,
-                                      'Sotuv o\'chirildi',
-                                    );
-                                  },
-                                );
-                              },
+                      child: ResponsiveTable(
+                        minWidth: 980,
+                        child: Column(
+                          children: [
+                            SotuvlarBoxTableHeader(),
+                            Expanded(
+                              child: sales.isEmpty
+                                  ? TableEmpty(
+                                      icon: Icons.history_toggle_off_outlined,
+                                      title: 'Hali sotuv yo\'q',
+                                      message: 'Hali sotuv amalga oshirilmagan',
+                                    )
+                                  : ListView.builder(
+                                      itemCount: sales.length,
+                                      itemBuilder:
+                                          (BuildContext context, int index) {
+                                            final SaleRecord sale =
+                                                sales[index];
+                                            return _SaleRow(
+                                              sale: sale,
+                                              isLast: index == sales.length - 1,
+                                              onDelete: () async {
+                                                final bool ok =
+                                                    await showConfirmDialog(
+                                                      context,
+                                                      'Sotuvni o\'chirishni tasdiqlaysizmi?',
+                                                    );
+                                                if (!ok) return;
+                                                await store.deleteSale(sale.id);
+                                                if (!context.mounted) return;
+                                                showMagazinSnack(
+                                                  context,
+                                                  'Sotuv o\'chirildi',
+                                                );
+                                              },
+                                            );
+                                          },
+                                    ),
                             ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),

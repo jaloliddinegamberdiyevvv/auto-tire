@@ -1,14 +1,18 @@
 import 'package:auto_tire/store/magazin_store.dart';
 import 'package:auto_tire/widgets/foyda_hisobi_app_bar.dart';
+import 'package:auto_tire/widgets/responsive_table.dart';
 import 'package:auto_tire/widgets/stat_cards_grid.dart';
 import 'package:auto_tire/widgets/table_empty.dart';
 import 'package:flutter/material.dart';
 
 class FoydaHisobi extends StatelessWidget {
-  FoydaHisobi({super.key});
+  const FoydaHisobi({super.key, this.onMenuTap});
+
+  final VoidCallback? onMenuTap;
 
   @override
   Widget build(BuildContext context) {
+    final bool compact = MediaQuery.sizeOf(context).width < 760;
     final MagazinStore store = MagazinScope.of(context);
     final List<String> cats = ['yengil', 'yuk', 'disk', 'akkum'];
 
@@ -28,9 +32,9 @@ class FoydaHisobi extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: FoydaHisobiAppBar(),
+      appBar: FoydaHisobiAppBar(onMenuTap: onMenuTap),
       body: ListView(
-        padding: EdgeInsets.all(24),
+        padding: EdgeInsets.all(compact ? 12 : 24),
         children: [
           StatCardsGrid(
             crossAxisCount: 4,
@@ -39,33 +43,36 @@ class FoydaHisobi extends StatelessWidget {
                 'title': 'Jami foyda',
                 'value': fmtMillion(store.totalProfit),
                 'subtitle': 'so\'m',
-                'image': 'assets/qarz_qoldigi_image.png',
+                'icon': Icons.trending_up_rounded,
               },
               {
                 'title': 'Jami aylanma',
                 'value': fmtMillion(store.totalRevenue, digits: 1),
                 'subtitle': 'so\'m',
-                'image': 'assets/qarz_qoldigi_image.png',
+                'icon': Icons.currency_exchange_outlined,
               },
               {
                 'title': 'Jami sotuvlar',
                 'value': '${store.sales.length}',
                 'subtitle': 'ta operatsiya',
-                'image': 'assets/qarz_qoldigi_image.png',
+                'icon': Icons.point_of_sale_outlined,
               },
               {
                 'title': 'Kutilgan qarzlar',
                 'value': fmtMillion(store.pendingDebtSum),
                 'subtitle': 'so\'m',
-                'image': 'assets/qarz_qoldigi_image.png',
+                'icon': Icons.account_balance_wallet_outlined,
               },
             ],
           ),
           SizedBox(height: 16),
-          Row(
+          Flex(
+            direction: compact ? Axis.vertical : Axis.horizontal,
+            mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
+              Flexible(
+                fit: compact ? FlexFit.loose : FlexFit.tight,
                 child: Container(
                   height: 325,
                   decoration: BoxDecoration(
@@ -82,37 +89,55 @@ class FoydaHisobi extends StatelessWidget {
                         icon: Icons.warning_amber_rounded,
                         iconColor: Colors.grey,
                       ),
-                      KategoriyaFoydaBoxTableHeader(),
                       Expanded(
-                        child: Column(
-                          children: List.generate(cats.length, (int index) {
-                            final String cat = cats[index];
-                            final List<SaleRecord> catSales = store.sales
-                                .where((SaleRecord s) => s.cat == cat)
-                                .toList();
-                            double profit = 0;
-                            for (final SaleRecord s in catSales) {
-                              profit += s.profit;
-                            }
-                            final double avg = catSales.isEmpty
-                                ? 0
-                                : profit / catSales.length;
-                            return KategoriyaFoydaBoxRow(
-                              kategoriya: categoryLabel(cat),
-                              sotuvSoni: '${catSales.length} ta',
-                              jamiFoyda: fmtSom(profit),
-                              ortachaFoyda: fmtSom(avg.round()),
-                              isLast: index == cats.length - 1,
-                            );
-                          }),
+                        child: ResponsiveTable(
+                          minWidth: 520,
+                          child: Column(
+                            children: [
+                              KategoriyaFoydaBoxTableHeader(),
+                              Expanded(
+                                child: Column(
+                                  children: List.generate(cats.length, (
+                                    int index,
+                                  ) {
+                                    final String cat = cats[index];
+                                    final List<SaleRecord> catSales = store
+                                        .sales
+                                        .where(
+                                          (SaleRecord s) => s.cat == cat,
+                                        )
+                                        .toList();
+                                    double profit = 0;
+                                    for (final SaleRecord s in catSales) {
+                                      profit += s.profit;
+                                    }
+                                    final double avg = catSales.isEmpty
+                                        ? 0
+                                        : profit / catSales.length;
+                                    return KategoriyaFoydaBoxRow(
+                                      kategoriya: categoryLabel(cat),
+                                      sotuvSoni: '${catSales.length} ta',
+                                      jamiFoyda: fmtSom(profit),
+                                      ortachaFoyda: fmtSom(avg.round()),
+                                      isLast: index == cats.length - 1,
+                                    );
+                                  }),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(width: 16),
-              Expanded(
+              SizedBox(
+                width: compact ? 0 : 16,
+                height: compact ? 16 : 0,
+              ),
+              Flexible(
+                fit: compact ? FlexFit.loose : FlexFit.tight,
                 child: Container(
                   height: 325,
                   decoration: BoxDecoration(
@@ -129,29 +154,42 @@ class FoydaHisobi extends StatelessWidget {
                         icon: Icons.warning_amber_rounded,
                         iconColor: Colors.grey,
                       ),
-                      EngKopFoydaBoxTableHeader(),
                       Expanded(
-                        child: top.isEmpty
-                            ? TableEmpty(
-                                icon: Icons.trending_up,
-                                title: 'Hali sotuv yo\'q',
-                                message:
-                                    'Sotuvlar chiqqach shu yerda ko\'rinadi',
-                              )
-                            : ListView.builder(
-                                itemCount: top.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  final MapEntry<String, _TopItem> entry =
-                                      top[index];
-                                  return _TopProfitRow(
-                                    rank: index + 1,
-                                    name: entry.key,
-                                    qty: entry.value.qty,
-                                    profit: entry.value.profit,
-                                    isLast: index == top.length - 1,
-                                  );
-                                },
+                        child: ResponsiveTable(
+                          minWidth: 520,
+                          child: Column(
+                            children: [
+                              EngKopFoydaBoxTableHeader(),
+                              Expanded(
+                                child: top.isEmpty
+                                    ? TableEmpty(
+                                        icon: Icons.trending_up,
+                                        title: 'Hali sotuv yo\'q',
+                                        message:
+                                            'Sotuvlar chiqqach shu yerda ko\'rinadi',
+                                      )
+                                    : ListView.builder(
+                                        itemCount: top.length,
+                                        itemBuilder:
+                                            (
+                                              BuildContext context,
+                                              int index,
+                                            ) {
+                                              final MapEntry<String, _TopItem>
+                                              entry = top[index];
+                                              return _TopProfitRow(
+                                                rank: index + 1,
+                                                name: entry.key,
+                                                qty: entry.value.qty,
+                                                profit: entry.value.profit,
+                                                isLast: index == top.length - 1,
+                                              );
+                                            },
+                                      ),
                               ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),

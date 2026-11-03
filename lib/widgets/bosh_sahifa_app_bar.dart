@@ -208,6 +208,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:auto_tire/login_screen.dart';
+import 'package:auto_tire/store/magazin_store.dart';
+import 'package:auto_tire/user_profile.dart';
 
 class BoshSahifaAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String formattedDate;
@@ -224,12 +226,14 @@ class BoshSahifaAppBar extends StatefulWidget implements PreferredSizeWidget {
   final VoidCallback? onProfile;
   final VoidCallback? onStoreProfile;
   final VoidCallback? onLogout;
+  final Future<void> Function(UserProfile profile)? onProfileChanged;
+  final VoidCallback? onMenuTap;
 
   const BoshSahifaAppBar({
     super.key,
     required this.formattedDate,
-    this.firstName = 'Jaloliddin',
-    this.lastName = 'Egamberdiyev',
+    this.firstName = '',
+    this.lastName = '',
     this.login = '',
     this.phone = '',
     this.password = '',
@@ -240,6 +244,8 @@ class BoshSahifaAppBar extends StatefulWidget implements PreferredSizeWidget {
     this.onProfile,
     this.onStoreProfile,
     this.onLogout,
+    this.onProfileChanged,
+    this.onMenuTap,
   });
 
   static const Color background = Color(0xFF000000);
@@ -256,6 +262,7 @@ class BoshSahifaAppBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
+  bool _showPassword = false;
   late String firstName;
   late String lastName;
   late String login;
@@ -309,98 +316,121 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
     final result = await showDialog<String>(
       context: context,
       builder: (dialogContext) {
-        return Dialog(
-          backgroundColor: BoshSahifaAppBar.card,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-            side: const BorderSide(color: BoshSahifaAppBar.border),
-          ),
-          child: Container(
-            width: 400,
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 19,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: controller,
-                  autofocus: true,
-                  maxLines: maxLines,
-                  keyboardType: keyboardType,
-                  inputFormatters: inputFormatters,
-                  cursorColor: Colors.white,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: InputDecoration(
-                    hintText: hint,
-                    hintStyle: const TextStyle(
-                      color: BoshSahifaAppBar.muted,
-                      fontSize: 13,
+        final bool isPassword = title.contains('Parol');
+        bool obscureText = isPassword;
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) => Dialog(
+            backgroundColor: BoshSahifaAppBar.card,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side: const BorderSide(color: BoshSahifaAppBar.border),
+            ),
+            child: Container(
+              width: 400,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w600,
                     ),
-                    filled: true,
-                    fillColor: BoshSahifaAppBar.fieldBg,
-                    contentPadding: const EdgeInsets.all(15),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: BoshSahifaAppBar.border,
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    maxLines: maxLines,
+                    obscureText: obscureText,
+                    keyboardType: keyboardType,
+                    inputFormatters: inputFormatters,
+                    cursorColor: Colors.white,
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: hint,
+                      hintStyle: const TextStyle(
+                        color: BoshSahifaAppBar.muted,
+                        fontSize: 13,
+                      ),
+                      filled: true,
+                      fillColor: BoshSahifaAppBar.fieldBg,
+                      contentPadding: const EdgeInsets.all(15),
+                      suffixIcon: isPassword
+                          ? IconButton(
+                              tooltip: obscureText
+                                  ? 'Parolni ko‘rsatish'
+                                  : 'Parolni yashirish',
+                              onPressed: () => setDialogState(
+                                () => obscureText = !obscureText,
+                              ),
+                              icon: Icon(
+                                obscureText
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                color: BoshSahifaAppBar.muted,
+                              ),
+                            )
+                          : null,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: BoshSahifaAppBar.border,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.white54),
                       ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.white54),
-                    ),
                   ),
-                ),
-                const SizedBox(height: 22),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(dialogContext),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(
-                            color: BoshSahifaAppBar.border,
+                  const SizedBox(height: 22),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(dialogContext),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: const BorderSide(
+                              color: BoshSahifaAppBar.border,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 13),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 13),
-                        ),
-                        child: const Text('Bekor qilish'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          final value = controller.text.trim();
-
-                          if (value.isEmpty) return;
-
-                          Navigator.pop(dialogContext, value);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 13),
-                        ),
-                        child: const Text(
-                          'Saqlash',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                          child: const Text('Bekor qilish'),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            final value = isPassword
+                                ? controller.text
+                                : controller.text.trim();
+
+                            if (value.isEmpty) return;
+
+                            Navigator.pop(dialogContext, value);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                          ),
+                          child: const Text(
+                            'Saqlash',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -465,8 +495,12 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
               );
 
               if (result != null && mounted) {
-                setState(() => onSave(result));
+                setState(() {
+                  onSave(result);
+                  if (title.contains('Parol')) password = result;
+                });
                 setDialogState(() {});
+                await _saveProfile();
               }
             }
 
@@ -531,8 +565,17 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
                 _InfoItem(
                   icon: Icons.lock_outline_rounded,
                   label: 'Parol',
-                  value: password.isEmpty ? 'Kiritilmagan' : '••••••••',
+                  value: password.isEmpty
+                      ? 'Kiritilmagan'
+                      : _showPassword
+                      ? password
+                      : '•' * password.length,
                   editable: true,
+                  onToggleVisibility: password.isEmpty
+                      ? null
+                      : () => setDialogState(
+                          () => _showPassword = !_showPassword,
+                        ),
                   onEdit: () => editField(
                     title: 'Parolni o‘zgartirish',
                     value: password,
@@ -546,6 +589,25 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
         );
       },
     );
+  }
+
+  Future<void> _saveProfile() async {
+    try {
+      await widget.onProfileChanged?.call(
+        UserProfile(
+          firstName: firstName,
+          lastName: lastName,
+          email: login,
+          password: password,
+        ),
+      );
+    } catch (error) {
+      debugPrint('Profil ma’lumotlarini saqlab bo‘lmadi: $error');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Profilni saqlab bo‘lmadi: $error')),
+      );
+    }
   }
 
   // Do'kon ma'lumotlari
@@ -706,6 +768,21 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
                           ],
                         ),
                       ),
+                      if (item.onToggleVisibility != null)
+                        IconButton(
+                          tooltip: _showPassword
+                              ? 'Parolni yashirish'
+                              : 'Parolni ko‘rsatish',
+                          visualDensity: VisualDensity.compact,
+                          onPressed: item.onToggleVisibility,
+                          icon: Icon(
+                            _showPassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: Colors.white70,
+                            size: 18,
+                          ),
+                        ),
                       if (item.editable)
                         IconButton(
                           tooltip: 'Tahrirlash',
@@ -808,17 +885,36 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           Navigator.pop(dialogContext);
 
+                          try {
+                            await MagazinScope.of(context).clearAll();
+                          } catch (error) {
+                            debugPrint(
+                              'Do‘kon ma’lumotlarini o‘chirib bo‘lmadi: $error',
+                            );
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Ma’lumotlarni o‘chirib bo‘lmadi: $error',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          if (!mounted) return;
                           if (widget.onLogout != null) {
                             widget.onLogout!();
-                          } else {
-                            Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(builder: (_) => LoginScreen()),
-                              (route) => false,
-                            );
+                            return;
                           }
+
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (_) => LoginScreen()),
+                            (route) => false,
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
@@ -841,6 +937,9 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    final bool compact = screenWidth < 700;
+    final bool showDrawerButton = screenWidth < 600 && widget.onMenuTap != null;
     return Container(
       decoration: const BoxDecoration(
         border: Border(
@@ -848,99 +947,130 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 24),
         child: AppBar(
           backgroundColor: BoshSahifaAppBar.background,
           elevation: 0,
           scrolledUnderElevation: 0,
-          centerTitle: true,
-          titleSpacing: 0,
-          leadingWidth: 120,
-          leading: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Bosh sahifa',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          title: Container(
-            width: 275,
-            height: 35,
-            decoration: BoxDecoration(
-              color: BoshSahifaAppBar.background,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: BoshSahifaAppBar.border, width: 1.5),
-            ),
-            child: TextField(
-              controller: widget.searchController,
-              onChanged: widget.onSearchChanged,
-              cursorColor: Colors.white,
-              cursorWidth: 1.5,
-              style: const TextStyle(color: Colors.white, fontSize: 12.5),
-              textAlignVertical: TextAlignVertical.center,
-              decoration: const InputDecoration(
-                hintText: 'Sotuvni qidirish...',
-                hintStyle: TextStyle(color: Colors.white54, fontSize: 13),
-                isDense: true,
-                prefixIcon: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
-                  child: Icon(
-                    Icons.search_rounded,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                ),
-                prefixIconConstraints: BoxConstraints(
-                  minWidth: 32,
-                  minHeight: 32,
-                ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          ),
-          actions: [
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              onPressed: () {},
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: BoshSahifaAppBar.border,
-                    width: 1.5,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+          centerTitle: !compact,
+          titleSpacing: compact ? 0 : 0,
+          leadingWidth: showDrawerButton ? 160 : 120,
+          leading: showDrawerButton
+              ? Row(
                   children: [
-                    const Icon(
-                      Icons.calendar_month_outlined,
-                      color: Colors.white,
-                      size: 15,
+                    IconButton(
+                      tooltip: 'Menyuni ochish',
+                      onPressed: widget.onMenuTap,
+                      icon: const Icon(Icons.menu_rounded, color: Colors.white),
                     ),
-                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Bosh sahifa',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                     Text(
-                      widget.formattedDate,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      'Bosh sahifa',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
+          title: compact
+              ? null
+              : Container(
+                  width: 275,
+                  height: 35,
+                  decoration: BoxDecoration(
+                    color: BoshSahifaAppBar.background,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: BoshSahifaAppBar.border,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: TextField(
+                    controller: widget.searchController,
+                    onChanged: widget.onSearchChanged,
+                    cursorColor: Colors.white,
+                    cursorWidth: 1.5,
+                    style: const TextStyle(color: Colors.white, fontSize: 12.5),
+                    textAlignVertical: TextAlignVertical.center,
+                    decoration: const InputDecoration(
+                      hintText: 'Sotuvni qidirish...',
+                      hintStyle: TextStyle(color: Colors.white54, fontSize: 13),
+                      isDense: true,
+                      prefixIcon: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: Icon(
+                          Icons.search_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                      prefixIconConstraints: BoxConstraints(
+                        minWidth: 32,
+                        minHeight: 32,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
+          actions: [
+            if (!compact)
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                onPressed: () {},
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: BoshSahifaAppBar.border,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.calendar_month_outlined,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        widget.formattedDate,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
+            if (!compact) const SizedBox(width: 12),
 
             // Profil menyusi
             PopupMenuButton<String>(
@@ -1117,6 +1247,7 @@ class _InfoItem {
   final String value;
   final bool editable;
   final VoidCallback? onEdit;
+  final VoidCallback? onToggleVisibility;
 
   const _InfoItem({
     required this.icon,
@@ -1124,6 +1255,7 @@ class _InfoItem {
     required this.value,
     this.editable = false,
     this.onEdit,
+    this.onToggleVisibility,
   });
 }
 

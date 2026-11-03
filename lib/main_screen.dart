@@ -7,30 +7,35 @@ import 'package:auto_tire/pages/sotuvlar.dart';
 import 'package:auto_tire/pages/yengil_balon.dart';
 import 'package:auto_tire/pages/yuk_balon.dart';
 import 'package:auto_tire/store/magazin_store.dart';
+import 'package:auto_tire/user_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class AutoTireMainScreen extends StatefulWidget {
-  AutoTireMainScreen({super.key});
+  const AutoTireMainScreen({super.key, required this.profile});
+
+  final UserProfile profile;
 
   @override
   State<AutoTireMainScreen> createState() => _AutoTireMainScreenState();
 }
 
 class _AutoTireMainScreenState extends State<AutoTireMainScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   // Hozir tanlangan sahifa indeksi.
   int _selectedIndex = 0;
 
   // Ilovadagi barcha sahifalar.
-  final List<Widget> _pages = [
-    BoshSahifa(),
-    YengilBalon(),
-    YukBalon(),
-    Diskalar(),
-    Akkumulyator(),
-    Sotuvlar(),
-    Qarzlar(),
-    FoydaHisobi(),
+  late final List<Widget> _pages = [
+    BoshSahifa(profile: widget.profile, onMenuTap: _openDrawer),
+    YengilBalon(onMenuTap: _openDrawer),
+    YukBalon(onMenuTap: _openDrawer),
+    Diskalar(onMenuTap: _openDrawer),
+    Akkumulyator(onMenuTap: _openDrawer),
+    Sotuvlar(onMenuTap: _openDrawer),
+    Qarzlar(onMenuTap: _openDrawer),
+    FoydaHisobi(onMenuTap: _openDrawer),
   ];
 
   // Menyu orqali sahifani almashtirish.
@@ -40,31 +45,209 @@ class _AutoTireMainScreenState extends State<AutoTireMainScreen> {
     });
   }
 
+  void _openDrawer() {
+    _scaffoldKey.currentState?.openDrawer();
+  }
+
+  void _selectDrawerPage(int index) {
+    _changePage(index);
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Color(0xFF0B0B0B),
+      drawerEnableOpenDragGesture: false,
+      drawer: Drawer(
+        width: (MediaQuery.sizeOf(context).width * 0.84).clamp(280, 340),
+        backgroundColor: Color(0xFF121212),
+        child: SafeArea(
+          child: AutoTireLeftBar(
+            selectedIndex: _selectedIndex,
+            onTap: _selectDrawerPage,
+          ),
+        ),
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 600) {
+            return IndexedStack(index: _selectedIndex, children: _pages);
+          }
 
-      // Asosiy ekran va chap sidebar.
-      body: Row(
-        children: [
-          // Doimiy chap menyu.
-          SizedBox(
-            width: 260,
-            child: AutoTireLeftBar(
-              selectedIndex: _selectedIndex,
-              onTap: _changePage,
+          if (constraints.maxWidth < 1200) {
+            return Row(
+              children: [
+                _TabletPageRail(
+                  selectedIndex: _selectedIndex,
+                  onTap: _changePage,
+                ),
+                Container(width: 1, color: Color(0xFF2A2A2A)),
+                Expanded(
+                  child: IndexedStack(index: _selectedIndex, children: _pages),
+                ),
+              ],
+            );
+          }
+
+          return Row(
+            children: [
+              SizedBox(
+                width: 260,
+                child: AutoTireLeftBar(
+                  selectedIndex: _selectedIndex,
+                  onTap: _changePage,
+                ),
+              ),
+              Container(width: 2, color: Color(0xFF2A2A2A)),
+              Expanded(
+                child: IndexedStack(index: _selectedIndex, children: _pages),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _TabletPageRail extends StatelessWidget {
+  const _TabletPageRail({required this.selectedIndex, required this.onTap});
+
+  final int selectedIndex;
+  final ValueChanged<int> onTap;
+
+  static const List<String> _labels = [
+    'Bosh sahifa',
+    'Yengil balon',
+    'Yuk balon',
+    'Disklar',
+    'Akkumulyator',
+    'Sotuvlar',
+    'Qarzlar',
+    'Foyda hisobi',
+  ];
+
+  static const List<String> _images = [
+    '',
+    'assets/yengil_balon.png',
+    'assets/yuk_balon.png',
+    'assets/disklar.png',
+    'assets/akkumlyator.png',
+    'assets/sotuvlar.png',
+    'assets/qarzlar.png',
+    'assets/foyda_hisobi.png',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 72,
+      color: const Color(0xFF121212),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 14, 12, 0),
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: Center(
+                  child: Image.asset(
+                    'assets/auto_tire_logo.png',
+                    width: 38,
+                    height: 38,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: SizedBox(
+                width: 24,
+                child: Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: Colors.white.withValues(alpha: 0.1),
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+                itemCount: _labels.length,
+                itemBuilder: (context, index) {
+                  final bool selected = selectedIndex == index;
+                  final bool isGroupEnd = index == 0 || index == 4;
 
-          // Sidebar va kontent orasidagi chiziq.
-          Container(width: 2, color: Color(0xFF2A2A2A)),
-
-          // Tanlangan sahifa.
-          Expanded(
-            child: IndexedStack(index: _selectedIndex, children: _pages),
-          ),
-        ],
+                  return Column(
+                    children: [
+                      Tooltip(
+                        message: _labels[index],
+                        child: Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(15),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(15),
+                            onTap: () => onTap(index),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 0),
+                              curve: Curves.easeOut,
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: selected
+                                    ? const Color(0xFF252525)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Center(
+                                child: index == 0
+                                    ? FaIcon(
+                                        FontAwesomeIcons.house,
+                                        size: 19,
+                                        color: selected
+                                            ? Colors.white
+                                            : Colors.white60,
+                                      )
+                                    : Image.asset(
+                                        _images[index],
+                                        width: 25,
+                                        height: 25,
+                                        fit: BoxFit.contain,
+                                        color: selected
+                                            ? Colors.white
+                                            : Colors.white60,
+                                        colorBlendMode: BlendMode.srcIn,
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (isGroupEnd)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: SizedBox(
+                            width: 24,
+                            child: Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
+                          ),
+                        )
+                      else
+                        const SizedBox(height: 8),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
