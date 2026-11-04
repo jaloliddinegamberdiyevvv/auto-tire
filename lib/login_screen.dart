@@ -20,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _obscure = true;
   bool _isSaving = false;
+  String _phone = '';
 
   // Ranglar
   final Color _fieldBg = Color(0xFF141416);
@@ -52,6 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _firstNameCtrl.text = profile.firstName;
       _lastNameCtrl.text = profile.lastName;
       _loginCtrl.text = profile.email;
+      _phone = profile.phone;
     } catch (error) {
       debugPrint('Profil ma’lumotlarini tiklab bo‘lmadi: $error');
       if (!mounted) return;
@@ -71,6 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
       lastName: _lastNameCtrl.text.trim(),
       email: _loginCtrl.text.trim(),
       password: _passwordCtrl.text,
+      phone: _phone,
     );
 
     try {

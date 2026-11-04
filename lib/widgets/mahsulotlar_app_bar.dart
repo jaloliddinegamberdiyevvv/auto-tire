@@ -85,7 +85,8 @@ class MahsulotlarAppBar extends StatelessWidget implements PreferredSizeWidget {
                       onChanged: onSearchChanged,
                       cursorColor: Colors.white,
                       style: TextStyle(color: Colors.white, fontSize: 12.5),
-                      textAlignVertical: TextAlignVertical.center,
+                      textAlignVertical: TextAlignVertical
+                          .center, // Markazlashtirish uchun majburiy
                       decoration: InputDecoration(
                         hintText: 'Qidirish...',
                         hintStyle: TextStyle(
@@ -104,7 +105,11 @@ class MahsulotlarAppBar extends StatelessWidget implements PreferredSizeWidget {
                           minHeight: 32,
                         ),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
+                        // EShu yerni o'zgartiring:
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 12.0,
+                          horizontal: 8.0,
+                        ),
                       ),
                     ),
                   ),

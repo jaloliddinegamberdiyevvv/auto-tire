@@ -1,209 +1,3 @@
-// import 'package:flutter/cupertino.dart';
-// import 'package:flutter/material.dart';
-
-// class BoshSahifaAppBar extends StatelessWidget implements PreferredSizeWidget {
-//   final String formattedDate;
-//   final TextEditingController? searchController;
-//   final ValueChanged<String>? onSearchChanged;
-//   final VoidCallback? onNotification;
-//   final VoidCallback? onProfile;
-
-//   BoshSahifaAppBar({
-//     super.key,
-//     required this.formattedDate,
-//     this.searchController,
-//     this.onSearchChanged,
-//     this.onNotification,
-//     this.onProfile,
-//   });
-
-//   @override
-//   Size get preferredSize => Size.fromHeight(60);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return PreferredSize(
-//       preferredSize: Size.fromHeight(60),
-//       child: Container(
-//         decoration: BoxDecoration(
-//           border: Border(
-//             bottom: BorderSide(color: Color(0xFF2A2A2A), width: 1),
-//           ),
-//         ),
-//         child: Padding(
-//           padding: EdgeInsets.symmetric(horizontal: 24),
-//           child: AppBar(
-//             backgroundColor: Colors.black,
-//             elevation: 0,
-//             scrolledUnderElevation: 0,
-//             centerTitle: true,
-//             titleSpacing: 0,
-//             leadingWidth: 120,
-//             leading: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children: [
-//                 Text(
-//                   'Bosh sahifa',
-//                   style: TextStyle(
-//                     color: Colors.white,
-//                     fontSize: 18,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//               ],
-//             ),
-//             title: Container(
-//               width: 275,
-//               height: 35,
-//               decoration: BoxDecoration(
-//                 color: Colors.black,
-//                 borderRadius: BorderRadius.circular(8),
-//                 border: Border.all(
-//                   color: Focus.of(context).hasFocus
-//                       ? Color(0xFF555555)
-//                       : Color(0xFF2A2A2A),
-//                   width: 1.5,
-//                 ),
-//               ),
-//               child: TextField(
-//                 controller: searchController,
-//                 onChanged: onSearchChanged,
-//                 cursorColor: Colors.white,
-//                 cursorWidth: 1.5,
-//                 cursorHeight: 15,
-//                 style: TextStyle(color: Colors.white, fontSize: 12.5),
-//                 textAlignVertical: TextAlignVertical.center,
-//                 decoration: InputDecoration(
-//                   hintText: 'Sotuvni qidirish...',
-//                   hintStyle: TextStyle(
-//                     color: Colors.white,
-//                     fontWeight: FontWeight.w400,
-//                     fontSize: 13,
-//                   ),
-//                   isDense: true,
-//                   prefixIcon: Padding(
-//                     padding: EdgeInsets.symmetric(horizontal: 8),
-//                     child: Icon(
-//                       Icons.search_rounded,
-//                       color: Colors.white,
-//                       size: 16,
-//                     ),
-//                   ),
-//                   prefixIconConstraints: BoxConstraints(
-//                     minWidth: 32,
-//                     minHeight: 32,
-//                   ),
-//                   border: InputBorder.none,
-//                   contentPadding: EdgeInsets.zero,
-//                 ),
-//               ),
-//             ),
-//             actions: [
-//               CupertinoButton(
-//                 padding: EdgeInsets.zero,
-//                 minimumSize: Size(0, 0),
-//                 onPressed: () {},
-//                 child: Container(
-//                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-//                   decoration: BoxDecoration(
-//                     borderRadius: BorderRadius.circular(10),
-//                     border: Border.all(color: Color(0xFF2A2A2A), width: 1.5),
-//                   ),
-//                   child: Row(
-//                     mainAxisSize: MainAxisSize.min,
-//                     children: [
-//                       Icon(
-//                         Icons.calendar_month_outlined,
-//                         color: Colors.white,
-//                         size: 15,
-//                       ),
-//                       SizedBox(width: 8),
-//                       Text(
-//                         formattedDate,
-//                         style: TextStyle(
-//                           color: Colors.white,
-//                           fontSize: 13,
-//                           fontWeight: FontWeight.w400,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//               SizedBox(width: 8),
-//               CupertinoButton(
-//                 padding: EdgeInsets.zero,
-//                 minimumSize: Size(0, 0),
-//                 onPressed: onNotification,
-//                 child: Container(
-//                   width: 40,
-//                   height: 40,
-//                   decoration: BoxDecoration(
-//                     borderRadius: BorderRadius.circular(12),
-//                     border: Border.all(color: Color(0xFF2A2A2A), width: 1.5),
-//                   ),
-//                   child: Center(
-//                     child: Icon(
-//                       Icons.notifications_none,
-//                       color: Colors.white,
-//                       size: 18,
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//               SizedBox(width: 8),
-//               CupertinoButton(
-//                 padding: EdgeInsets.zero,
-//                 minimumSize: Size(0, 0),
-//                 onPressed: onProfile,
-//                 child: SizedBox(
-//                   width: 40,
-//                   height: 40,
-//                   child: Stack(
-//                     alignment: Alignment.center,
-//                     children: [
-//                       Container(
-//                         width: 40,
-//                         height: 40,
-//                         decoration: BoxDecoration(
-//                           shape: BoxShape.circle,
-//                           border: Border.all(
-//                             color: Color(0xFF38332E),
-//                             width: 2.5,
-//                           ),
-//                         ),
-//                       ),
-//                       Container(
-//                         width: 30,
-//                         height: 30,
-//                         decoration: BoxDecoration(
-//                           shape: BoxShape.circle,
-//                           color: Color(0xFF121212),
-//                         ),
-//                         child: Center(
-//                           child: Text(
-//                             'JE',
-//                             style: TextStyle(
-//                               color: Colors.white,
-//                               fontSize: 13,
-//                               fontWeight: FontWeight.w600,
-//                             ),
-//                           ),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -310,6 +104,7 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
+    bool isUzbekPhone = false,
   }) async {
     final controller = TextEditingController(text: initialValue);
 
@@ -341,6 +136,20 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
                     ),
                   ),
                   const SizedBox(height: 20),
+                  if (isUzbekPhone) ...[
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 6),
+                      child: Text(
+                        'TELEFON',
+                        style: TextStyle(
+                          color: BoshSahifaAppBar.muted,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ),
+                  ],
                   TextField(
                     controller: controller,
                     autofocus: true,
@@ -356,8 +165,16 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
                         color: BoshSahifaAppBar.muted,
                         fontSize: 13,
                       ),
+                      prefixText: isUzbekPhone ? '+998  ' : null,
+                      prefixStyle: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                       filled: true,
-                      fillColor: BoshSahifaAppBar.fieldBg,
+                      fillColor: isUzbekPhone
+                          ? const Color(0xFF0B0B0B)
+                          : BoshSahifaAppBar.fieldBg,
                       contentPadding: const EdgeInsets.all(15),
                       suffixIcon: isPassword
                           ? IconButton(
@@ -485,6 +302,7 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
               required ValueChanged<String> onSave,
               TextInputType keyboardType = TextInputType.text,
               List<TextInputFormatter>? formatters,
+              bool isUzbekPhone = false,
             }) async {
               final result = await _editValue(
                 title: title,
@@ -492,6 +310,7 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
                 hint: hint,
                 keyboardType: keyboardType,
                 inputFormatters: formatters,
+                isUzbekPhone: isUzbekPhone,
               );
 
               if (result != null && mounted) {
@@ -559,6 +378,7 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
                     hint: '90 123 45 67',
                     keyboardType: TextInputType.phone,
                     formatters: _phoneFormatters,
+                    isUzbekPhone: true,
                     onSave: (v) => phone = v,
                   ),
                 ),
@@ -599,6 +419,7 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
           lastName: lastName,
           email: login,
           password: password,
+          phone: phone,
         ),
       );
     } catch (error) {
@@ -1013,7 +834,11 @@ class _BoshSahifaAppBarState extends State<BoshSahifaAppBar> {
                     textAlignVertical: TextAlignVertical.center,
                     decoration: const InputDecoration(
                       hintText: 'Sotuvni qidirish...',
-                      hintStyle: TextStyle(color: Colors.white54, fontSize: 13),
+                      hintStyle: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w400,
+                        fontSize: 13,
+                      ),
                       isDense: true,
                       prefixIcon: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 8),
@@ -1267,6 +1092,12 @@ class _UzPhoneFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     String digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+
+    if (digits.startsWith('998') && digits.length > 9) {
+      digits = digits.substring(3);
+    } else if (digits.startsWith('0') && digits.length > 9) {
+      digits = digits.substring(1);
+    }
 
     if (digits.length > 9) {
       digits = digits.substring(0, 9);

@@ -24,6 +24,7 @@ class BoshSahifa extends StatefulWidget {
 }
 
 class _BoshSahifaState extends State<BoshSahifa> {
+  late UserProfile _profile;
   late DateTime currentDateTime;
   Timer? dateTimeTimer;
   final TextEditingController _searchController = TextEditingController();
@@ -32,6 +33,7 @@ class _BoshSahifaState extends State<BoshSahifa> {
   @override
   void initState() {
     super.initState();
+    _profile = widget.profile;
     currentDateTime = DateTime.now();
     dateTimeTimer = Timer.periodic(Duration(seconds: 1), (Timer timer) {
       if (!mounted) return;
@@ -59,6 +61,12 @@ class _BoshSahifaState extends State<BoshSahifa> {
     setState(() {
       _query = value.toLowerCase();
     });
+  }
+
+  Future<void> _saveProfile(UserProfile profile) async {
+    await profile.save();
+    if (!mounted) return;
+    setState(() => _profile = profile);
   }
 
   int _menuIndexForProduct(MagazinStore store, Product product) {
@@ -102,11 +110,12 @@ class _BoshSahifaState extends State<BoshSahifa> {
       appBar: BoshSahifaAppBar(
         formattedDate: formattedDate,
         onMenuTap: widget.onMenuTap,
-        firstName: widget.profile.firstName,
-        lastName: widget.profile.lastName,
-        login: widget.profile.email,
-        password: widget.profile.password,
-        onProfileChanged: (UserProfile profile) => profile.save(),
+        firstName: _profile.firstName,
+        lastName: _profile.lastName,
+        login: _profile.email,
+        phone: _profile.phone,
+        password: _profile.password,
+        onProfileChanged: _saveProfile,
         searchController: _searchController,
         onSearchChanged: _updateSearch,
       ),

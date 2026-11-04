@@ -427,7 +427,10 @@ Future<void> showProductDialog(
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(dialogContext),
-                      child: Text('Bekor qilish'),
+                      child: Text(
+                        'Bekor qilish',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                     TextButton(
                       onPressed: () async {
@@ -450,7 +453,10 @@ Future<void> showProductDialog(
                         Navigator.pop(dialogContext);
                         showMagazinSnack(context, 'Mahsulot saqlandi!');
                       },
-                      child: Text('Saqlash'),
+                      child: Text(
+                        'Saqlash',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ],
                 ),
@@ -762,7 +768,10 @@ Future<void> showSaleDialog(
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
-                  child: Text('Bekor qilish'),
+                  child: Text(
+                    'Bekor qilish',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -789,7 +798,10 @@ Future<void> showSaleDialog(
                           : 'Sotuv qayd etildi!',
                     );
                   },
-                  child: Text('Sotishni tasdiqlash'),
+                  child: Text(
+                    'Sotishni tasdiqlash',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             ),
@@ -951,7 +963,10 @@ Future<void> showDebtDialog(BuildContext context) async {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text('Bekor qilish'),
+              child: Text(
+                'Bekor qilish',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
             TextButton(
               onPressed: () async {
@@ -971,7 +986,10 @@ Future<void> showDebtDialog(BuildContext context) async {
                 Navigator.pop(dialogContext);
                 showMagazinSnack(context, 'Qarz saqlandi');
               },
-              child: Text('Qarzni saqlash'),
+              child: Text(
+                'Qarzni saqlash',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),

@@ -9,6 +9,7 @@ class UserProfile {
     required this.lastName,
     required this.email,
     required this.password,
+    this.phone = '',
   });
 
   static const String _storageKey = 'user_profile';
@@ -19,6 +20,7 @@ class UserProfile {
   final String lastName;
   final String email;
   final String password;
+  final String phone;
 
   static Future<UserProfile?> load() async {
     final preferences = await SharedPreferences.getInstance();
@@ -40,6 +42,7 @@ class UserProfile {
       lastName: decoded['lastName'] as String,
       email: decoded['email'] as String,
       password: password,
+      phone: decoded['phone'] as String? ?? '',
     );
   }
 
@@ -52,6 +55,7 @@ class UserProfile {
         'firstName': firstName,
         'lastName': lastName,
         'email': email,
+        'phone': phone,
       }),
     );
     if (!saved) {
